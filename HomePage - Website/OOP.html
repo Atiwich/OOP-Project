@@ -1,0 +1,2438 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>CineBook - ระบบจองตั๋วภาพยนตร์</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+         :root {
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Noto Sans Thai', sans-serif;
+            background: #0f1117;
+            color: #eaeaea;
+        }
+        
+        .app-bg {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+        }
+        
+        .login-card {
+            background: #1a1d27;
+            border-radius: 16px;
+            padding: 32px;
+            width: 360px;
+            max-width: 100%;
+            height: fit-content;
+            margin-top: 60px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .login-card h1 {
+            margin: 0 0 4px;
+        }
+        
+        .subtitle {
+            color: #9aa0ac;
+            margin-top: 0;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .tabs button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #22252f;
+            color: #eaeaea;
+            cursor: pointer;
+        }
+        
+        .tabs button.active {
+            background: #4f7cff;
+            border-color: #4f7cff;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #b7bcc7;
+        }
+        
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 4px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #0f1117;
+            color: #eaeaea;
+        }
+        
+        input:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+        
+        button.primary {
+            background: #4f7cff;
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        button {
+            cursor: pointer;
+        }
+        
+        .view {
+            width: 100%;
+            max-width: 960px;
+        }
+        
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .header-actions button {
+            margin-left: 8px;
+            background: #22252f;
+            border: 1px solid #333;
+            color: #eaeaea;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        
+        .header-actions button.active {
+            background: #4f7cff;
+            border-color: #4f7cff;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .banner {
+            background: #1e3a2f;
+            border: 1px solid #2f6b4f;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .banner.error {
+            background: #3a2222;
+            border-color: #5a2f2f;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 190px));
+            gap: 14px;
+        }
+        
+        .panel {
+            background: #1a1d27;
+            border-radius: 12px;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        
+        .movie-card {
+            background: #1a1d27;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #262a36;
+            cursor: pointer;
+            transition: border-color .15s;
+            text-align: left;
+            max-width: 190px;
+        }
+        
+        .movie-card:hover {
+            border-color: #4f7cff;
+        }
+        
+        .movie-poster-wrap {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: #22252f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .movie-poster-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .movie-poster-placeholder {
+            font-size: 28px;
+            color: #444;
+        }
+        
+        .movie-card-body {
+            padding: 8px 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .movie-card-body h3 {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+        
+        .movie-card-body .muted {
+            font-size: 11px;
+        }
+        
+        .muted {
+            color: #9aa0ac;
+            font-size: 13px;
+        }
+        
+        .showtime-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .showtime-chip {
+            background: #22252f;
+            border: 1px solid #333;
+            color: #eaeaea;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .showtime-chip:hover {
+            border-color: #4f7cff;
+        }
+        
+        .showtime-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            background: #22252f;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        
+        .seat-selector {
+            margin: 16px 0;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .screen {
+            text-align: center;
+            background: #333;
+            padding: 6px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            width: 100%;
+            max-width: 420px;
+        }
+        
+        .seat-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        
+        .row-label {
+            width: 20px;
+            color: #9aa0ac;
+        }
+        
+        .seat {
+            width: 32px;
+            height: 32px;
+            flex: 0 0 auto;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #22252f;
+            color: #eaeaea;
+            font-size: 10px;
+        }
+        
+        .seat.selected {
+            background: #4f7cff;
+            border-color: #4f7cff;
+        }
+        
+        .seat.booked {
+            background: #3a2222;
+            border-color: #5a2f2f;
+            color: #7a5a5a;
+            cursor: not-allowed;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #9aa0ac;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .legend .box {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 4px;
+            background: #22252f;
+        }
+        
+        .legend .selected {
+            background: #4f7cff;
+        }
+        
+        .legend .booked {
+            background: #3a2222;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            font-weight: 600;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+        }
+        
+        .actions button {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #22252f;
+            color: #eaeaea;
+        }
+        
+        .actions button.primary {
+            background: #4f7cff;
+            border-color: #4f7cff;
+            color: #fff;
+        }
+        
+        .actions button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+        
+        .ticket-card {
+            background: #22252f;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+        }
+        
+        .inline-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        
+        .inline-form input,
+        .inline-form select {
+            width: auto;
+            margin-top: 0;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .form-grid-full {
+            grid-column: 1/-1;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #2a2d38;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .error-box {
+            background: #3a2222;
+            border: 1px solid #5a2f2f;
+            padding: 16px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 60px auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .card-row-gap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .card-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .small-btn {
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0f1117;
+            color: #eaeaea;
+        }
+        
+        .file-input {
+            padding: 8px 0;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        /* Modal */
+        
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, .65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+            overflow-y: auto;
+        }
+        
+        .modal {
+            background: #1a1d27;
+            border: 1px solid #2a2d38;
+            border-radius: 12px;
+            padding: 20px;
+            width: 480px;
+            max-width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
+        }
+        
+        .poster-preview {
+            width: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script>
+        (function() {
+            'use strict';
+            try {
+                var useState = React.useState;
+                var useMemo = React.useMemo;
+                var h = React.createElement;
+
+                var RATING_INFO = {
+                    G: 'G — เหมาะกับผู้ชมทุกวัย',
+                    PG: 'PG — เด็กควรมีผู้ปกครองแนะนำ',
+                    'PG-13': 'PG-13 — ผู้ชมอายุต่ำกว่า 13 ปี ควรมีผู้ปกครองแนะนำเป็นพิเศษ',
+                    R: 'R — ผู้ชมอายุต่ำกว่า 18 ปี ต้องมีผู้ปกครองควบคุมอย่างใกล้ชิด'
+                };
+
+                /* ============================================================
+                   MODELS
+                   ============================================================ */
+
+                // ---- Person (abstract) : ABSTRACTION + ENCAPSULATION ----
+                function Person(id, name, email) {
+                    if (this.constructor === Person) throw new Error('Person เป็น abstract class สร้าง instance ตรงๆ ไม่ได้');
+                    this.id = id;
+                    this.name = name;
+                    this.email = email;
+                }
+                Person.prototype.getId = function() {
+                    return this.id;
+                };
+                Person.prototype.getName = function() {
+                    return this.name;
+                };
+                Person.prototype.getEmail = function() {
+                    return this.email;
+                };
+                Person.prototype.setName = function(name) {
+                    if (!name.trim()) throw new Error('ชื่อห้ามว่าง');
+                    this.name = name;
+                };
+                Person.prototype.getRole = function() {
+                    throw new Error('ต้อง override getRole()');
+                };
+                Person.prototype.getDashboardInfo = function() {
+                    throw new Error('ต้อง override getDashboardInfo()');
+                };
+
+                // ---- Customer : INHERITANCE จาก Person ----
+                function Customer(id, name, email) {
+                    Person.call(this, id, name, email);
+                    this._bookingHistory = [];
+                }
+                Customer.prototype = Object.create(Person.prototype);
+                Customer.prototype.constructor = Customer;
+                Customer.prototype.addBooking = function(bookingId) {
+                    this._bookingHistory.push(bookingId);
+                };
+                Customer.prototype.getBookingHistory = function() {
+                    return this._bookingHistory.slice();
+                };
+                Customer.prototype.getRole = function() {
+                    return 'Customer';
+                };
+                Customer.prototype.getDashboardInfo = function() {
+                    return this.name + ' จองไปแล้ว ' + this._bookingHistory.length + ' รายการ';
+                };
+
+                // ---- Admin : INHERITANCE จาก Person ----
+                function Admin(id, name, email, accessLevel) {
+                    Person.call(this, id, name, email);
+                    this._accessLevel = accessLevel || 1;
+                }
+                Admin.prototype = Object.create(Person.prototype);
+                Admin.prototype.constructor = Admin;
+                Admin.prototype.getAccessLevel = function() {
+                    return this._accessLevel;
+                };
+                Admin.prototype.canManageMovies = function() {
+                    return this._accessLevel >= 1;
+                };
+                Admin.prototype.getRole = function() {
+                    return 'Admin';
+                };
+                Admin.prototype.getDashboardInfo = function() {
+                    return this.name + ' (ผู้ดูแลระบบ ระดับสิทธิ์ ' + this._accessLevel + ')';
+                };
+
+                // ---- Movie : ENCAPSULATION ----
+                function Movie(id, title, genre, durationMinutes, rating, posterUrl) {
+                    this._id = id;
+                    this._title = title;
+                    this._genre = genre;
+                    this._durationMinutes = durationMinutes;
+                    this._rating = rating;
+                    this._posterUrl = posterUrl || '';
+                }
+                Movie.prototype.getId = function() {
+                    return this._id;
+                };
+                Movie.prototype.getTitle = function() {
+                    return this._title;
+                };
+                Movie.prototype.getGenre = function() {
+                    return this._genre;
+                };
+                Movie.prototype.getDuration = function() {
+                    return this._durationMinutes;
+                };
+                Movie.prototype.getRating = function() {
+                    return this._rating;
+                };
+                Movie.prototype.getPosterUrl = function() {
+                    return this._posterUrl;
+                };
+                Movie.prototype.setTitle = function(t) {
+                    if (!t.trim()) throw new Error('ชื่อหนังห้ามว่าง');
+                    this._title = t;
+                };
+                Movie.prototype.setGenre = function(g) {
+                    if (!g.trim()) throw new Error('แนวหนังห้ามว่าง');
+                    this._genre = g;
+                };
+                Movie.prototype.setDuration = function(m) {
+                    if (!(m > 0)) throw new Error('ความยาวต้องมากกว่า 0');
+                    this._durationMinutes = m;
+                };
+                Movie.prototype.setRating = function(r) {
+                    this._rating = r;
+                };
+                Movie.prototype.setPosterUrl = function(u) {
+                    this._posterUrl = u || '';
+                };
+
+                // ---- Seat : ENCAPSULATION ----
+                function Seat(seatNumber, status) {
+                    this._seatNumber = seatNumber;
+                    this._status = status || 'AVAILABLE';
+                }
+                Seat.prototype.getSeatNumber = function() {
+                    return this._seatNumber;
+                };
+                Seat.prototype.getStatus = function() {
+                    return this._status;
+                };
+                Seat.prototype.isAvailable = function() {
+                    return this._status === 'AVAILABLE';
+                };
+                Seat.prototype.book = function() {
+                    if (!this.isAvailable()) throw new Error('ที่นั่ง ' + this._seatNumber + ' ถูกจองไปแล้ว');
+                    this._status = 'BOOKED';
+                };
+                Seat.prototype.release = function() {
+                    this._status = 'AVAILABLE';
+                };
+
+                // ---- Showtime ----
+                function Showtime(id, movie, startTime, hall, price, rows, cols) {
+                    this._id = id;
+                    this._movie = movie;
+                    this._startTime = startTime;
+                    this._hall = hall;
+                    this._price = price;
+                    this._seats = this._generateSeats(rows || 5, cols || 8);
+                }
+                Showtime.prototype._generateSeats = function(rows, cols) {
+                    var seats = [];
+                    var rowLetters = 'ABCDEFGHIJ'.slice(0, rows).split('');
+                    for (var i = 0; i < rowLetters.length; i++)
+                        for (var c = 1; c <= cols; c++) seats.push(new Seat(rowLetters[i] + c));
+                    return seats;
+                };
+                Showtime.prototype.getId = function() {
+                    return this._id;
+                };
+                Showtime.prototype.getMovie = function() {
+                    return this._movie;
+                };
+                Showtime.prototype.getStartTime = function() {
+                    return this._startTime;
+                };
+                Showtime.prototype.getHall = function() {
+                    return this._hall;
+                };
+                Showtime.prototype.getPrice = function() {
+                    return this._price;
+                };
+                Showtime.prototype.getSeats = function() {
+                    return this._seats.slice();
+                };
+                Showtime.prototype.findSeat = function(num) {
+                    for (var i = 0; i < this._seats.length; i++)
+                        if (this._seats[i].getSeatNumber() === num) return this._seats[i];
+                    return undefined;
+                };
+                Showtime.prototype.getAvailableSeatCount = function() {
+                    return this._seats.filter(function(s) {
+                        return s.isAvailable();
+                    }).length;
+                };
+                Showtime.prototype.getBookedSeatCount = function() {
+                    return this._seats.length - this.getAvailableSeatCount();
+                };
+                Showtime.prototype.restoreBookedSeats = function(nums) {
+                    for (var i = 0; i < nums.length; i++) {
+                        var s = this.findSeat(nums[i]);
+                        if (s && s.isAvailable()) s.book();
+                    }
+                };
+                // ---- setters สำหรับแอดมินแก้ไขรอบฉาย ----
+                Showtime.prototype.setStartTime = function(t) {
+                    if (!t) throw new Error('กรุณาระบุวันเวลารอบฉาย');
+                    this._startTime = t;
+                };
+                Showtime.prototype.setHall = function(hall) {
+                    if (!hall.trim()) throw new Error('ชื่อโรงห้ามว่าง');
+                    this._hall = hall;
+                };
+                Showtime.prototype.setPrice = function(p) {
+                    if (!(p > 0)) throw new Error('ราคาต้องมากกว่า 0');
+                    if (this.getBookedSeatCount() > 0) throw new Error('รอบนี้มีคนจองแล้ว ไม่สามารถแก้ราคาได้');
+                    this._price = p;
+                };
+
+                // ---- Ticket ----
+                function Ticket(id, showtime, seatNumber, price) {
+                    this._id = id;
+                    this._showtime = showtime;
+                    this._seatNumber = seatNumber;
+                    this._price = price;
+                }
+                Ticket.prototype.getId = function() {
+                    return this._id;
+                };
+                Ticket.prototype.getShowtime = function() {
+                    return this._showtime;
+                };
+                Ticket.prototype.getSeatNumber = function() {
+                    return this._seatNumber;
+                };
+                Ticket.prototype.getPrice = function() {
+                    return this._price;
+                };
+                Ticket.prototype.printSummary = function() {
+                    return this._showtime.getMovie().getTitle() + ' | ที่นั่ง ' + this._seatNumber + ' | ' + this._price + ' บาท';
+                };
+
+                // ---- PaymentMethod (abstract) : ABSTRACTION + POLYMORPHISM ----
+                function PaymentMethod(amount) {
+                    if (this.constructor === PaymentMethod) throw new Error('PaymentMethod เป็น abstract class');
+                    this.amount = amount;
+                }
+                PaymentMethod.prototype.getAmount = function() {
+                    return this.amount;
+                };
+                PaymentMethod.prototype.pay = function() {
+                    throw new Error('ต้อง override pay()');
+                };
+
+                // จ่ายเงินสด: จำนวนเงินคือราคาตั๋วเต็มจำนวนเสมอ ไม่ให้ผู้ใช้กรอกเอง
+                function CashPayment(amount) {
+                    PaymentMethod.call(this, amount);
+                }
+                CashPayment.prototype = Object.create(PaymentMethod.prototype);
+                CashPayment.prototype.constructor = CashPayment;
+                CashPayment.prototype.pay = function() {
+                    return 'ชำระเงินสด ' + this.amount + ' บาท (เต็มจำนวน ไม่มีเงินทอน)';
+                };
+
+                // จ่ายบัตรเครดิต: ต้องมีเลขบัตร/วันหมดอายุ/ชื่อผู้ถือบัตร/CVV ครบตามจริง
+                function CreditCardPayment(amount, cardNumber, expiryDate, holderName, cvv) {
+                    PaymentMethod.call(this, amount);
+                    this.cardNumber = (cardNumber || '').replace(/\s+/g, '');
+                    this.expiryDate = expiryDate || '';
+                    this.holderName = holderName || '';
+                    this.cvv = cvv || '';
+                }
+                CreditCardPayment.prototype = Object.create(PaymentMethod.prototype);
+                CreditCardPayment.prototype.constructor = CreditCardPayment;
+                CreditCardPayment.prototype.pay = function() {
+                    if (!/^\d{13,19}$/.test(this.cardNumber)) throw new Error('เลขบัตรไม่ถูกต้อง (ต้องเป็นตัวเลข 13-19 หลัก)');
+                    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(this.expiryDate)) throw new Error('วันหมดอายุต้องอยู่ในรูปแบบ MM/YY');
+                    if (!this.holderName.trim()) throw new Error('กรุณากรอกชื่อ-สกุลผู้ถือบัตร');
+                    if (!/^\d{3}$/.test(this.cvv)) throw new Error('CVV ต้องเป็นตัวเลข 3 หลัก');
+                    var last4 = this.cardNumber.slice(-4);
+                    return 'จ่ายผ่านบัตรเครดิตของ ' + this.holderName + ' เลขลงท้าย ' + last4 + ' จำนวน ' + this.amount + ' บาท';
+                };
+
+                // ใช้ตอนโหลด booking เก่าจาก localStorage กลับมา (ไม่ต้องจ่ายซ้ำ)
+                function ReloadedPayment(amount, summary) {
+                    PaymentMethod.call(this, amount);
+                    this.summary = summary;
+                }
+                ReloadedPayment.prototype = Object.create(PaymentMethod.prototype);
+                ReloadedPayment.prototype.constructor = ReloadedPayment;
+                ReloadedPayment.prototype.pay = function() {
+                    return this.summary;
+                };
+
+                // ---- Booking : ENCAPSULATION, เรียก payment.pay() แบบ polymorphic ----
+                function Booking(id, customerId, tickets, payment) {
+                    this._id = id;
+                    this._customerId = customerId;
+                    this._tickets = tickets;
+                    this._bookingTime = new Date().toISOString();
+                    this._paymentSummary = payment.pay();
+                }
+                Booking.prototype.getId = function() {
+                    return this._id;
+                };
+                Booking.prototype.getCustomerId = function() {
+                    return this._customerId;
+                };
+                Booking.prototype.getTickets = function() {
+                    return this._tickets.slice();
+                };
+                Booking.prototype.getBookingTime = function() {
+                    return this._bookingTime;
+                };
+                Booking.prototype.getPaymentSummary = function() {
+                    return this._paymentSummary;
+                };
+                Booking.prototype.getTotalPrice = function() {
+                    return this._tickets.reduce(function(s, t) {
+                        return s + t.getPrice();
+                    }, 0);
+                };
+
+                /* ============================================================
+                   SERVICES
+                   ============================================================ */
+
+                var StorageService = {
+                    save: function(key, data) {
+                        try {
+                            localStorage.setItem(key, JSON.stringify(data));
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    },
+                    load: function(key) {
+                        try {
+                            var raw = localStorage.getItem(key);
+                            return raw ? JSON.parse(raw) : null;
+                        } catch (e) {
+                            console.error(e);
+                            return null;
+                        }
+                    }
+                };
+
+                var STORAGE_KEY = 'cinebook-data-v3';
+
+                function CinemaService() {
+                    this._movies = [];
+                    this._showtimes = [];
+                    this._bookings = [];
+                    this._customers = [];
+                    this._load();
+                    if (this._movies.length === 0) this._seedData();
+                }
+                CinemaService.prototype.addMovie = function(movie) {
+                    this._movies.push(movie);
+                    this._save();
+                };
+                CinemaService.prototype.removeMovie = function(id) {
+                    this._movies = this._movies.filter(function(m) {
+                        return m.getId() !== id;
+                    });
+                    this._showtimes = this._showtimes.filter(function(s) {
+                        return s.getMovie().getId() !== id;
+                    });
+                    this._save();
+                };
+                CinemaService.prototype.getMovies = function() {
+                    return this._movies.slice();
+                };
+
+                // แก้ไขข้อมูลหนัง (ตรวจข้อมูลก่อน แล้วค่อยบันทึก)
+                CinemaService.prototype.updateMovie = function(id, f) {
+                    var m = this._movies.filter(function(x) {
+                        return x.getId() === id;
+                    })[0];
+                    if (!m) throw new Error('ไม่พบหนัง');
+                    var dur = Number(f.duration);
+                    if (!f.title.trim()) throw new Error('ชื่อหนังห้ามว่าง');
+                    if (!f.genre.trim()) throw new Error('แนวหนังห้ามว่าง');
+                    if (!(dur > 0)) throw new Error('ความยาวต้องมากกว่า 0');
+                    m.setTitle(f.title.trim());
+                    m.setGenre(f.genre.trim());
+                    m.setDuration(dur);
+                    m.setRating(f.rating);
+                    m.setPosterUrl(f.posterUrl);
+                    this._save();
+                };
+
+                CinemaService.prototype.addShowtime = function(st) {
+                    this._showtimes.push(st);
+                    this._save();
+                };
+                CinemaService.prototype.removeShowtime = function(id) {
+                    this._showtimes = this._showtimes.filter(function(s) {
+                        return s.getId() !== id;
+                    });
+                    this._save();
+                };
+                CinemaService.prototype.getShowtimes = function() {
+                    return this._showtimes.slice();
+                };
+                CinemaService.prototype.getShowtimesForMovie = function(movieId) {
+                    return this._showtimes.filter(function(s) {
+                        return s.getMovie().getId() === movieId;
+                    });
+                };
+
+                // แก้ไขรอบฉาย: ราคาแก้ได้เฉพาะรอบที่ยังไม่มีคนจอง
+                CinemaService.prototype.updateShowtime = function(id, f) {
+                    var st = this._showtimes.filter(function(x) {
+                        return x.getId() === id;
+                    })[0];
+                    if (!st) throw new Error('ไม่พบรอบฉาย');
+                    var price = Number(f.price);
+                    if (!f.startTime) throw new Error('กรุณาระบุวันเวลารอบฉาย');
+                    if (!f.hall.trim()) throw new Error('ชื่อโรงห้ามว่าง');
+                    if (!(price > 0)) throw new Error('ราคาต้องมากกว่า 0');
+                    if (price !== st.getPrice()) st.setPrice(price); // throw ถ้ามีคนจองแล้ว (ก่อนแก้อย่างอื่น)
+                    st.setStartTime(f.startTime);
+                    st.setHall(f.hall.trim());
+                    this._save();
+                };
+
+                CinemaService.prototype.getOrCreateCustomer = function(name, email) {
+                    var found = this._customers.filter(function(c) {
+                        return c.getEmail() === email;
+                    })[0];
+                    if (!found) {
+                        found = new Customer('CUS-' + Date.now(), name, email);
+                        this._customers.push(found);
+                        this._save();
+                    }
+                    return found;
+                };
+
+                CinemaService.prototype.createBooking = function(customer, showtimeId, seatNumbers, payment) {
+                    var showtime = this._showtimes.filter(function(s) {
+                        return s.getId() === showtimeId;
+                    })[0];
+                    if (!showtime) throw new Error('ไม่พบรอบฉายนี้');
+                    if (seatNumbers.length === 0) throw new Error('กรุณาเลือกที่นั่งอย่างน้อย 1 ที่');
+                    for (var i = 0; i < seatNumbers.length; i++) {
+                        var seat = showtime.findSeat(seatNumbers[i]);
+                        if (!seat) throw new Error('ไม่พบที่นั่ง ' + seatNumbers[i]);
+                        if (!seat.isAvailable()) throw new Error('ที่นั่ง ' + seatNumbers[i] + ' ถูกจองไปแล้ว');
+                    }
+                    var tickets = seatNumbers.map(function(n) {
+                        var s = showtime.findSeat(n);
+                        s.book();
+                        return new Ticket('TKT-' + Date.now() + '-' + n, showtime, n, showtime.getPrice());
+                    });
+                    var booking = new Booking('BKG-' + Date.now(), customer.getId(), tickets, payment);
+                    customer.addBooking(booking.getId());
+                    this._bookings.push(booking);
+                    this._save();
+                    return booking;
+                };
+
+                CinemaService.prototype.getBookingsForCustomer = function(id) {
+                    return this._bookings.filter(function(b) {
+                        return b.getCustomerId() === id;
+                    });
+                };
+                CinemaService.prototype.getAllBookings = function() {
+                    return this._bookings.slice();
+                };
+
+                CinemaService.prototype._save = function() {
+                    var data = {
+                        movies: this._movies.map(function(m) {
+                            return {
+                                id: m.getId(),
+                                title: m.getTitle(),
+                                genre: m.getGenre(),
+                                duration: m.getDuration(),
+                                rating: m.getRating(),
+                                posterUrl: m.getPosterUrl()
+                            };
+                        }),
+                        showtimes: this._showtimes.map(function(s) {
+                            return {
+                                id: s.getId(),
+                                movieId: s.getMovie().getId(),
+                                startTime: s.getStartTime(),
+                                hall: s.getHall(),
+                                price: s.getPrice(),
+                                bookedSeats: s.getSeats().filter(function(x) {
+                                    return !x.isAvailable();
+                                }).map(function(x) {
+                                    return x.getSeatNumber();
+                                })
+                            };
+                        }),
+                        bookings: this._bookings.map(function(b) {
+                            var firstTicket = b.getTickets()[0];
+                            return {
+                                id: b.getId(),
+                                customerId: b.getCustomerId(),
+                                showtimeId: firstTicket ? firstTicket.getShowtime().getId() : '',
+                                seatNumbers: b.getTickets().map(function(t) {
+                                    return t.getSeatNumber();
+                                }),
+                                totalPrice: b.getTotalPrice(),
+                                bookingTime: b.getBookingTime(),
+                                paymentSummary: b.getPaymentSummary()
+                            };
+                        }),
+                        customers: this._customers.map(function(c) {
+                            return {
+                                id: c.getId(),
+                                name: c.getName(),
+                                email: c.getEmail()
+                            };
+                        })
+                    };
+                    StorageService.save(STORAGE_KEY, data);
+                };
+
+                CinemaService.prototype._load = function() {
+                    var data = StorageService.load(STORAGE_KEY);
+                    if (!data) return;
+                    var self = this;
+                    this._movies = data.movies.map(function(m) {
+                        return new Movie(m.id, m.title, m.genre, m.duration, m.rating, m.posterUrl);
+                    });
+                    this._customers = data.customers.map(function(c) {
+                        return new Customer(c.id, c.name, c.email);
+                    });
+                    this._showtimes = data.showtimes.map(function(s) {
+                        var movie = self._movies.filter(function(m) {
+                            return m.getId() === s.movieId;
+                        })[0];
+                        var st = new Showtime(s.id, movie, s.startTime, s.hall, s.price);
+                        st.restoreBookedSeats(s.bookedSeats);
+                        return st;
+                    });
+                    this._bookings = data.bookings.map(function(b) {
+                        var st = self._showtimes.filter(function(s) {
+                            return s.getId() === b.showtimeId;
+                        })[0];
+                        var tickets = st ? b.seatNumbers.map(function(n) {
+                            return new Ticket(b.id + '-' + n, st, n, st.getPrice());
+                        }) : [];
+                        return new Booking(b.id, b.customerId, tickets, new ReloadedPayment(b.totalPrice, b.paymentSummary));
+                    });
+                    this._bookings.forEach(function(b) {
+                        var c = self._customers.filter(function(c) {
+                            return c.getId() === b.getCustomerId();
+                        })[0];
+                        if (c) c.addBooking(b.getId());
+                    });
+                };
+
+                CinemaService.prototype._seedData = function() {
+                    var m1 = new Movie('MOV-1', 'Galactic Drift', 'Sci-Fi', 128, 'PG-13');
+                    var m2 = new Movie('MOV-2', 'Whispering Pines', 'Horror', 102, 'R');
+                    var m3 = new Movie('MOV-3', 'Recipe for Laughter', 'Comedy', 95, 'G');
+                    this._movies.push(m1, m2, m3);
+                    this._showtimes.push(
+                        new Showtime('SHW-1', m1, '2026-09-25T13:00', 'Hall 1', 180),
+                        new Showtime('SHW-2', m1, '2026-09-25T19:30', 'Hall 1', 220),
+                        new Showtime('SHW-3', m2, '2026-09-25T21:00', 'Hall 2', 200),
+                        new Showtime('SHW-4', m3, '2026-09-26T15:00', 'Hall 3', 160)
+                    );
+                    this._save();
+                };
+
+                /* ============================================================
+                   UI COMPONENTS
+                   ============================================================ */
+
+                function readFileAsDataUrl(file, cb) {
+                    var reader = new FileReader();
+                    reader.onload = function() {
+                        cb(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                var GENRE_THEME = {
+                    'Sci-Fi': {
+                        gradient: 'linear-gradient(160deg,#1b1240,#2f3fa8 60%,#6a5acd)',
+                        icon: '🌌'
+                    },
+                    'Horror': {
+                        gradient: 'linear-gradient(160deg,#050505,#0f2b1f 55%,#1c3d2c)',
+                        icon: '👻'
+                    },
+                    'Comedy': {
+                        gradient: 'linear-gradient(160deg,#4a2b00,#c97a1a 55%,#ffce54)',
+                        icon: '😂'
+                    },
+                    'Fantasy': {
+                        gradient: 'linear-gradient(160deg,#2a0845,#6441a5 55%,#d183c9)',
+                        icon: '🦄'
+                    },
+                    'Action': {
+                        gradient: 'linear-gradient(160deg,#3a0a0a,#a11d1d 55%,#e0553f)',
+                        icon: '💥'
+                    },
+                    'Romance': {
+                        gradient: 'linear-gradient(160deg,#4a0f2a,#b23a6b 55%,#f28fb0)',
+                        icon: '💕'
+                    }
+                };
+
+                function MoviePoster(props) {
+                    var url = props.url,
+                        genre = props.genre || '';
+                    if (url) return h('div', {
+                        className: 'movie-poster-wrap'
+                    }, h('img', {
+                        src: url,
+                        alt: 'poster'
+                    }));
+                    var theme = GENRE_THEME[genre] || {
+                        gradient: 'linear-gradient(160deg,#22252f,#3a3f4d)',
+                        icon: '🎬'
+                    };
+                    return h('div', {
+                            className: 'movie-poster-wrap',
+                            style: {
+                                background: theme.gradient
+                            }
+                        },
+                        h('span', {
+                            className: 'movie-poster-placeholder'
+                        }, theme.icon));
+                }
+
+                // ---- Modal กลาง ใช้ร่วมกันทั้งหน้าแก้ไขหนัง/รอบฉาย ----
+                function Modal(props) {
+                    return h('div', {
+                            className: 'modal-backdrop',
+                            onClick: props.onClose
+                        },
+                        h('div', {
+                                className: 'modal',
+                                onClick: function(e) {
+                                    e.stopPropagation();
+                                }
+                            },
+                            h('div', {
+                                    className: 'card-title-row',
+                                    style: {
+                                        marginBottom: '12px'
+                                    }
+                                },
+                                h('h3', {
+                                    style: {
+                                        margin: 0
+                                    }
+                                }, props.title),
+                                h('button', {
+                                    type: 'button',
+                                    className: 'small-btn',
+                                    onClick: props.onClose
+                                }, '✕')
+                            ),
+                            props.error ? h('div', {
+                                className: 'banner error'
+                            }, props.error) : null,
+                            props.children
+                        )
+                    );
+                }
+
+                function EditMovieModal(props) {
+                    var m = props.movie;
+                    var a = useState(m.getTitle()),
+                        title = a[0],
+                        setTitle = a[1];
+                    var b = useState(m.getGenre()),
+                        genre = b[0],
+                        setGenre = b[1];
+                    var c = useState(String(m.getDuration())),
+                        duration = c[0],
+                        setDuration = c[1];
+                    var d = useState(m.getRating()),
+                        rating = d[0],
+                        setRating = d[1];
+                    var p = useState(m.getPosterUrl()),
+                        poster = p[0],
+                        setPoster = p[1];
+                    var er = useState(null),
+                        error = er[0],
+                        setError = er[1];
+
+                    function submit(ev) {
+                        ev.preventDefault();
+                        try {
+                            props.service.updateMovie(m.getId(), {
+                                title: title,
+                                genre: genre,
+                                duration: duration,
+                                rating: rating,
+                                posterUrl: poster
+                            });
+                            props.onSaved();
+                        } catch (err) {
+                            setError(err.message);
+                        }
+                    }
+
+                    return h(Modal, {
+                            title: 'แก้ไขหนัง',
+                            onClose: props.onClose,
+                            error: error
+                        },
+                        h('form', {
+                                onSubmit: submit
+                            },
+                            h('div', {
+                                    className: 'form-grid'
+                                },
+                                h('label', null, 'ชื่อหนัง', h('input', {
+                                    value: title,
+                                    required: true,
+                                    onChange: function(x) {
+                                        setTitle(x.target.value);
+                                    }
+                                })),
+                                h('label', null, 'แนวหนัง', h('input', {
+                                    value: genre,
+                                    required: true,
+                                    onChange: function(x) {
+                                        setGenre(x.target.value);
+                                    }
+                                })),
+                                h('label', null, 'ความยาว (นาที)', h('input', {
+                                    type: 'number',
+                                    value: duration,
+                                    required: true,
+                                    onChange: function(x) {
+                                        setDuration(x.target.value);
+                                    }
+                                })),
+                                h('label', null, 'เรทอายุผู้ชม',
+                                    h('select', {
+                                        value: rating,
+                                        onChange: function(x) {
+                                            setRating(x.target.value);
+                                        }
+                                    }, ['G', 'PG', 'PG-13', 'R'].map(function(r) {
+                                        return h('option', {
+                                            key: r,
+                                            value: r
+                                        }, r);
+                                    }))
+                                ),
+                                h('p', {
+                                    className: 'muted form-grid-full',
+                                    style: {
+                                        marginTop: '-8px'
+                                    }
+                                }, RATING_INFO[rating]),
+                                h('div', {
+                                        className: 'form-grid-full'
+                                    },
+                                    h('label', null, 'รูปโปสเตอร์ (อัปโหลดจากเครื่อง)',
+                                        h('input', {
+                                            className: 'file-input',
+                                            type: 'file',
+                                            accept: 'image/*',
+                                            onChange: function(x) {
+                                                var fl = x.target.files[0];
+                                                if (fl) readFileAsDataUrl(fl, setPoster);
+                                            }
+                                        })
+                                    ),
+                                    h('div', {
+                                        className: 'poster-preview'
+                                    }, h(MoviePoster, {
+                                        url: poster,
+                                        genre: genre
+                                    })),
+                                    poster ? h('button', {
+                                        type: 'button',
+                                        className: 'small-btn',
+                                        style: {
+                                            marginTop: '8px'
+                                        },
+                                        onClick: function() {
+                                            setPoster('');
+                                        }
+                                    }, 'ลบรูปโปสเตอร์') : null
+                                )
+                            ),
+                            h('div', {
+                                    className: 'actions'
+                                },
+                                h('button', {
+                                    type: 'button',
+                                    onClick: props.onClose
+                                }, 'ยกเลิก'),
+                                h('button', {
+                                    type: 'submit',
+                                    className: 'primary'
+                                }, 'บันทึกการแก้ไข')
+                            )
+                        )
+                    );
+                }
+
+                function EditShowtimeModal(props) {
+                    var st = props.showtime;
+                    var booked = st.getBookedSeatCount();
+                    var locked = booked > 0;
+                    var a = useState(st.getStartTime()),
+                        startTime = a[0],
+                        setStartTime = a[1];
+                    var b = useState(st.getHall()),
+                        hall = b[0],
+                        setHall = b[1];
+                    var c = useState(String(st.getPrice())),
+                        price = c[0],
+                        setPrice = c[1];
+                    var er = useState(null),
+                        error = er[0],
+                        setError = er[1];
+
+                    function submit(ev) {
+                        ev.preventDefault();
+                        try {
+                            props.service.updateShowtime(st.getId(), {
+                                startTime: startTime,
+                                hall: hall,
+                                price: price
+                            });
+                            props.onSaved();
+                        } catch (err) {
+                            setError(err.message);
+                        }
+                    }
+
+                    return h(Modal, {
+                            title: 'แก้ไขรอบฉาย: ' + st.getMovie().getTitle(),
+                            onClose: props.onClose,
+                            error: error
+                        },
+                        h('form', {
+                                onSubmit: submit
+                            },
+                            h('div', {
+                                    className: 'form-grid'
+                                },
+                                h('label', null, 'วันเวลารอบฉาย', h('input', {
+                                    type: 'datetime-local',
+                                    value: startTime,
+                                    required: true,
+                                    onChange: function(x) {
+                                        setStartTime(x.target.value);
+                                    }
+                                })),
+                                h('label', null, 'โรงฉาย', h('input', {
+                                    value: hall,
+                                    required: true,
+                                    onChange: function(x) {
+                                        setHall(x.target.value);
+                                    }
+                                })),
+                                h('label', {
+                                        className: 'form-grid-full'
+                                    }, 'ราคาบัตร (บาท)',
+                                    h('input', {
+                                        type: 'number',
+                                        value: price,
+                                        required: true,
+                                        disabled: locked,
+                                        onChange: function(x) {
+                                            setPrice(x.target.value);
+                                        }
+                                    })
+                                ),
+                                locked ? h('p', {
+                                        className: 'muted form-grid-full',
+                                        style: {
+                                            marginTop: '-8px'
+                                        }
+                                    },
+                                    'รอบนี้มีคนจองแล้ว ' + booked + ' ที่นั่ง จึงแก้ราคาไม่ได้ (แก้วันเวลา/โรงได้)') : null
+                            ),
+                            h('div', {
+                                    className: 'actions'
+                                },
+                                h('button', {
+                                    type: 'button',
+                                    onClick: props.onClose
+                                }, 'ยกเลิก'),
+                                h('button', {
+                                    type: 'submit',
+                                    className: 'primary'
+                                }, 'บันทึกการแก้ไข')
+                            )
+                        )
+                    );
+                }
+
+                function Login(props) {
+                    var tabState = useState('customer');
+                    var tab = tabState[0],
+                        setTab = tabState[1];
+                    var nameState = useState('');
+                    var name = nameState[0],
+                        setName = nameState[1];
+                    var emailState = useState('');
+                    var email = emailState[0],
+                        setEmail = emailState[1];
+
+                    function submitCustomer(e) {
+                        e.preventDefault();
+                        if (!name.trim() || !email.trim()) return;
+                        props.onCustomerLogin(name.trim(), email.trim());
+                    }
+
+                    function submitAdmin(e) {
+                        e.preventDefault();
+                        if (!name.trim()) return;
+                        props.onAdminLogin(name.trim());
+                    }
+
+                    return h('div', {
+                            className: 'login-card'
+                        },
+                        h('h1', null, '🎬 CineBook'),
+                        h('p', {
+                            className: 'subtitle'
+                        }, 'ระบบจองตั๋วภาพยนตร์'),
+                        h('div', {
+                                className: 'tabs'
+                            },
+                            h('button', {
+                                className: tab === 'customer' ? 'active' : '',
+                                onClick: function() {
+                                    setTab('customer');
+                                }
+                            }, 'ลูกค้า'),
+                            h('button', {
+                                className: tab === 'admin' ? 'active' : '',
+                                onClick: function() {
+                                    setTab('admin');
+                                }
+                            }, 'ผู้ดูแลระบบ')
+                        ),
+                        tab === 'customer' ?
+                        h('form', {
+                                onSubmit: submitCustomer
+                            },
+                            h('label', null, 'ชื่อ', h('input', {
+                                value: name,
+                                onChange: function(e) {
+                                    setName(e.target.value);
+                                },
+                                required: true
+                            })),
+                            h('label', null, 'อีเมล', h('input', {
+                                type: 'email',
+                                value: email,
+                                onChange: function(e) {
+                                    setEmail(e.target.value);
+                                },
+                                required: true
+                            })),
+                            h('button', {
+                                type: 'submit',
+                                className: 'primary'
+                            }, 'เข้าสู่ระบบในฐานะลูกค้า')
+                        ) :
+                        h('form', {
+                                onSubmit: submitAdmin
+                            },
+                            h('label', null, 'ชื่อผู้ดูแลระบบ', h('input', {
+                                value: name,
+                                onChange: function(e) {
+                                    setName(e.target.value);
+                                },
+                                required: true
+                            })),
+                            h('button', {
+                                type: 'submit',
+                                className: 'primary'
+                            }, 'เข้าสู่ระบบในฐานะ Admin')
+                        )
+                    );
+                }
+
+                function SeatSelector(props) {
+                    var showtime = props.showtime,
+                        selectedSeats = props.selectedSeats,
+                        onToggleSeat = props.onToggleSeat;
+                    var seats = showtime.getSeats();
+                    var rows = [];
+                    seats.forEach(function(s) {
+                        var r = s.getSeatNumber()[0];
+                        if (rows.indexOf(r) === -1) rows.push(r);
+                    });
+
+                    return h('div', {
+                            className: 'seat-selector'
+                        },
+                        h('div', {
+                            className: 'screen'
+                        }, 'จอภาพยนตร์'),
+                        rows.map(function(row) {
+                            return h('div', {
+                                    className: 'seat-row',
+                                    key: row
+                                },
+                                h('span', {
+                                    className: 'row-label'
+                                }, row),
+                                seats.filter(function(s) {
+                                    return s.getSeatNumber().indexOf(row) === 0;
+                                }).map(function(seat) {
+                                    var num = seat.getSeatNumber();
+                                    var isSelected = selectedSeats.indexOf(num) !== -1;
+                                    var isBooked = !seat.isAvailable();
+                                    var cls = 'seat' + (isBooked ? ' booked' : '') + (isSelected ? ' selected' : '');
+                                    return h('button', {
+                                        key: num,
+                                        disabled: isBooked,
+                                        title: num,
+                                        className: cls,
+                                        onClick: function() {
+                                            onToggleSeat(num);
+                                        }
+                                    }, num);
+                                })
+                            );
+                        }),
+                        h('div', {
+                                className: 'legend'
+                            },
+                            h('span', null, h('i', {
+                                className: 'box available'
+                            }), ' ว่าง'),
+                            h('span', null, h('i', {
+                                className: 'box selected'
+                            }), ' เลือกอยู่'),
+                            h('span', null, h('i', {
+                                className: 'box booked'
+                            }), ' จองแล้ว')
+                        )
+                    );
+                }
+
+                function CustomerView(props) {
+                    var service = props.service,
+                        customer = props.customer,
+                        onLogout = props.onLogout;
+                    var stepState = useState('browse');
+                    var step = stepState[0],
+                        setStep = stepState[1];
+                    var movieState = useState(null);
+                    var selectedMovie = movieState[0],
+                        setSelectedMovie = movieState[1];
+                    var stState = useState(null);
+                    var selectedShowtime = stState[0],
+                        setSelectedShowtime = stState[1];
+                    var seatsState = useState([]);
+                    var selectedSeats = seatsState[0],
+                        setSelectedSeats = seatsState[1];
+                    var payState = useState('card');
+                    var payType = payState[0],
+                        setPayType = payState[1];
+                    var cardNumState = useState('');
+                    var cardNumber = cardNumState[0],
+                        setCardNumber = cardNumState[1];
+                    var cardExpState = useState('');
+                    var cardExpiry = cardExpState[0],
+                        setCardExpiry = cardExpState[1];
+                    var cardHolderState = useState('');
+                    var cardHolder = cardHolderState[0],
+                        setCardHolder = cardHolderState[1];
+                    var cardCvvState = useState('');
+                    var cardCvv = cardCvvState[0],
+                        setCardCvv = cardCvvState[1];
+                    var msgState = useState(null);
+                    var message = msgState[0],
+                        setMessage = msgState[1];
+                    var errState = useState(false);
+                    var isError = errState[0],
+                        setIsError = errState[1];
+                    var agreeState = useState(false);
+                    var agreedNoRefund = agreeState[0],
+                        setAgreedNoRefund = agreeState[1];
+                    var tickState = useState(0);
+                    var setTick = tickState[1];
+
+                    var movies = service.getMovies();
+                    var bookings = service.getBookingsForCustomer(customer.getId());
+
+                    function toggleSeat(n) {
+                        setSelectedSeats(function(prev) {
+                            return prev.indexOf(n) !== -1 ? prev.filter(function(s) {
+                                return s !== n;
+                            }) : prev.concat([n]);
+                        });
+                    }
+                    var total = selectedShowtime ? selectedShowtime.getPrice() * selectedSeats.length : 0;
+                    var navGroup = (step === 'mytickets') ? 'mytickets' : 'browse';
+
+                    function confirmPayment() {
+                        if (!selectedShowtime) return;
+                        try {
+                            var payment = payType === 'cash' ?
+                                new CashPayment(total) :
+                                new CreditCardPayment(total, cardNumber, cardExpiry, cardHolder, cardCvv);
+                            var booking = service.createBooking(customer, selectedShowtime.getId(), selectedSeats, payment);
+                            setMessage('จองสำเร็จ! ' + booking.getPaymentSummary());
+                            setIsError(false);
+                            setSelectedSeats([]);
+                            setSelectedShowtime(null);
+                            setStep('mytickets');
+                            setTick(function(t) {
+                                return t + 1;
+                            });
+                        } catch (err) {
+                            setMessage(err.message);
+                            setIsError(true);
+                        }
+                    }
+
+                    var headerEl = h('header', {
+                            className: 'view-header'
+                        },
+                        h('div', null, h('h2', null, 'สวัสดี, ' + customer.getName()), h('p', {
+                            className: 'muted'
+                        }, customer.getDashboardInfo())),
+                        h('div', {
+                                className: 'header-actions'
+                            },
+                            h('button', {
+                                className: navGroup === 'browse' ? 'active' : '',
+                                onClick: function() {
+                                    setSelectedMovie(null);
+                                    setSelectedShowtime(null);
+                                    setStep('browse');
+                                }
+                            }, 'ดูหนัง'),
+                            h('button', {
+                                className: navGroup === 'mytickets' ? 'active' : '',
+                                onClick: function() {
+                                    setStep('mytickets');
+                                }
+                            }, 'ตั๋วของฉัน'),
+                            h('button', {
+                                onClick: onLogout
+                            }, 'ออกจากระบบ')
+                        )
+                    );
+
+                    var bannerEl = message ? h('div', {
+                        className: 'banner' + (isError ? ' error' : '')
+                    }, message) : null;
+                    var bodyEl = null;
+
+                    if (step === 'browse') {
+                        bodyEl = h('div', {
+                            className: 'grid'
+                        }, movies.map(function(movie) {
+                            var showCount = service.getShowtimesForMovie(movie.getId()).length;
+                            return h('div', {
+                                    className: 'movie-card',
+                                    key: movie.getId(),
+                                    onClick: function() {
+                                        setSelectedMovie(movie);
+                                        setMessage(null);
+                                        setStep('showtimes');
+                                    }
+                                },
+                                h(MoviePoster, {
+                                    url: movie.getPosterUrl(),
+                                    genre: movie.getGenre()
+                                }),
+                                h('div', {
+                                        className: 'movie-card-body'
+                                    },
+                                    h('h3', null, movie.getTitle()),
+                                    h('p', {
+                                        className: 'muted'
+                                    }, movie.getGenre() + ' · ' + movie.getDuration() + ' นาที · เรท ' + movie.getRating()),
+                                    h('p', {
+                                        className: 'muted'
+                                    }, showCount + ' รอบฉาย')
+                                )
+                            );
+                        }));
+                    } else if (step === 'showtimes' && selectedMovie) {
+                        var shows = service.getShowtimesForMovie(selectedMovie.getId());
+                        bodyEl = h('div', {
+                                className: 'panel'
+                            },
+                            h('div', {
+                                    className: 'card-title-row'
+                                },
+                                h('h3', null, selectedMovie.getTitle()),
+                                h('button', {
+                                    onClick: function() {
+                                        setStep('browse');
+                                    }
+                                }, '← กลับ')
+                            ),
+                            h('p', {
+                                className: 'muted'
+                            }, selectedMovie.getGenre() + ' · ' + selectedMovie.getDuration() + ' นาที · เรท ' + selectedMovie.getRating()),
+                            h('div', {
+                                    className: 'showtime-list'
+                                },
+                                shows.length === 0 ?
+                                h('p', {
+                                    className: 'muted'
+                                }, 'ยังไม่มีรอบฉาย') :
+                                shows.map(function(st) {
+                                    var label = new Date(st.getStartTime()).toLocaleString('th-TH', {
+                                            dateStyle: 'short',
+                                            timeStyle: 'short'
+                                        }) +
+                                        ' · ' + st.getHall() + ' · ' + st.getPrice() + ' บาท · เหลือ ' + st.getAvailableSeatCount() + ' ที่';
+                                    return h('button', {
+                                        key: st.getId(),
+                                        className: 'showtime-chip',
+                                        onClick: function() {
+                                            setSelectedShowtime(st);
+                                            setSelectedSeats([]);
+                                            setStep('seats');
+                                        }
+                                    }, label);
+                                })
+                            )
+                        );
+                    } else if (step === 'seats' && selectedShowtime) {
+                        bodyEl = h('div', {
+                                className: 'panel'
+                            },
+                            h('h3', null, selectedShowtime.getMovie().getTitle()),
+                            h('p', {
+                                className: 'muted'
+                            }, new Date(selectedShowtime.getStartTime()).toLocaleString('th-TH') + ' · ' + selectedShowtime.getHall()),
+                            h(SeatSelector, {
+                                showtime: selectedShowtime,
+                                selectedSeats: selectedSeats,
+                                onToggleSeat: toggleSeat
+                            }),
+                            h('div', {
+                                    className: 'summary-row'
+                                },
+                                h('span', null, 'เลือก ' + selectedSeats.length + ' ที่นั่ง (' + (selectedSeats.join(', ') || '-') + ')'),
+                                h('span', null, 'รวม ' + (selectedShowtime.getPrice() * selectedSeats.length) + ' บาท')
+                            ),
+                            h('div', {
+                                    className: 'actions'
+                                },
+                                h('button', {
+                                    onClick: function() {
+                                        setStep('showtimes');
+                                    }
+                                }, 'ย้อนกลับ'),
+                                h('button', {
+                                    className: 'primary',
+                                    disabled: selectedSeats.length === 0,
+                                    onClick: function() {
+                                        setMessage(null);
+                                        setAgreedNoRefund(false);
+                                        setStep('payment');
+                                    }
+                                }, 'ไปหน้าชำระเงิน')
+                            )
+                        );
+                    } else if (step === 'payment' && selectedShowtime) {
+                        bodyEl = h('div', {
+                                className: 'panel'
+                            },
+                            h('h3', null, 'ชำระเงิน'),
+                            h('p', null, 'ยอดรวม: ', h('strong', null, total + ' บาท'), ' (' + selectedSeats.length + ' ที่นั่ง)'),
+                            h('div', {
+                                    className: 'tabs'
+                                },
+                                h('button', {
+                                    className: payType === 'card' ? 'active' : '',
+                                    onClick: function() {
+                                        setPayType('card');
+                                    }
+                                }, 'บัตรเครดิต'),
+                                h('button', {
+                                    className: payType === 'cash' ? 'active' : '',
+                                    onClick: function() {
+                                        setPayType('cash');
+                                    }
+                                }, 'เงินสด')
+                            ),
+                            payType === 'card' ?
+                            h('div', {
+                                    className: 'form-grid'
+                                },
+                                h('label', {
+                                        className: 'form-grid-full'
+                                    }, 'เลขบัตร (13-19 หลัก)',
+                                    h('input', {
+                                        value: cardNumber,
+                                        onChange: function(e) {
+                                            setCardNumber(e.target.value);
+                                        },
+                                        placeholder: '4111111111111111',
+                                        inputMode: 'numeric'
+                                    })),
+                                h('label', null, 'วันหมดอายุ (MM/YY)',
+                                    h('input', {
+                                        value: cardExpiry,
+                                        onChange: function(e) {
+                                            setCardExpiry(e.target.value);
+                                        },
+                                        placeholder: '08/29'
+                                    })),
+                                h('label', null, 'CVV (3 หลัก)',
+                                    h('input', {
+                                        value: cardCvv,
+                                        onChange: function(e) {
+                                            setCardCvv(e.target.value);
+                                        },
+                                        placeholder: '123',
+                                        inputMode: 'numeric',
+                                        maxLength: 3
+                                    })),
+                                h('label', {
+                                        className: 'form-grid-full'
+                                    }, 'ชื่อ-สกุลผู้ถือบัตร',
+                                    h('input', {
+                                        value: cardHolder,
+                                        onChange: function(e) {
+                                            setCardHolder(e.target.value);
+                                        },
+                                        placeholder: 'SOMCHAI JAIDEE'
+                                    }))
+                            ) :
+                            h('p', {
+                                className: 'muted'
+                            }, 'ชำระเงินสดเต็มจำนวนตามราคาตั๋ว: ' + total + ' บาท (ไม่ต้องกรอกจำนวนเงิน)'),
+                            h('div', {
+                                    className: 'banner error',
+                                    style: {
+                                        marginTop: '16px'
+                                    }
+                                },
+                                '⚠️ กรุณาตรวจสอบให้แน่ใจก่อนยืนยัน: เมื่อชำระเงินและยืนยันการจองแล้ว จะไม่สามารถเปลี่ยนที่นั่งหรือยกเลิกการจองได้ทุกกรณี'
+                            ),
+                            h('label', {
+                                    style: {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginTop: '10px'
+                                    }
+                                },
+                                h('input', {
+                                    type: 'checkbox',
+                                    style: {
+                                        width: 'auto'
+                                    },
+                                    checked: agreedNoRefund,
+                                    onChange: function(e) {
+                                        setAgreedNoRefund(e.target.checked);
+                                    }
+                                }),
+                                h('span', null, 'ฉันเข้าใจและยอมรับเงื่อนไขข้างต้นแล้ว')
+                            ),
+                            h('div', {
+                                    className: 'actions'
+                                },
+                                h('button', {
+                                    onClick: function() {
+                                        setStep('seats');
+                                    }
+                                }, 'ย้อนกลับ'),
+                                h('button', {
+                                    className: 'primary',
+                                    disabled: !agreedNoRefund,
+                                    onClick: confirmPayment
+                                }, 'ยืนยันการจอง')
+                            )
+                        );
+                    } else if (step === 'mytickets') {
+                        bodyEl = h('div', {
+                                className: 'panel'
+                            },
+                            h('h3', null, 'ตั๋วของฉัน'),
+                            bookings.length === 0 ? h('p', {
+                                className: 'muted'
+                            }, 'ยังไม่มีการจอง') : null,
+                            bookings.map(function(b) {
+                                return h('div', {
+                                        className: 'ticket-card',
+                                        key: b.getId()
+                                    },
+                                    h('p', {
+                                        className: 'muted'
+                                    }, 'จองเมื่อ ' + new Date(b.getBookingTime()).toLocaleString('th-TH') + ' · ' + b.getPaymentSummary()),
+                                    b.getTickets().map(function(t) {
+                                        return h('p', {
+                                            key: t.getId()
+                                        }, '🎟️ ' + t.printSummary());
+                                    }),
+                                    h('p', null, h('strong', null, 'รวม ' + b.getTotalPrice() + ' บาท'))
+                                );
+                            })
+                        );
+                    }
+
+                    return h('div', {
+                        className: 'view'
+                    }, headerEl, bannerEl, bodyEl);
+                }
+
+                function AdminView(props) {
+                    var service = props.service,
+                        admin = props.admin,
+                        onLogout = props.onLogout;
+                    var tickState = useState(0);
+                    var setTick = tickState[1];
+                    var tabState = useState('movies');
+                    var tab = tabState[0],
+                        setTab = tabState[1];
+                    var showAddState = useState(false);
+                    var showAddForm = showAddState[0],
+                        setShowAddForm = showAddState[1];
+
+                    // state ของ modal แก้ไข: null หรือ {type:'movie'|'showtime', id:...}
+                    var editState = useState(null);
+                    var editing = editState[0],
+                        setEditing = editState[1];
+
+                    var titleState = useState('');
+                    var title = titleState[0],
+                        setTitle = titleState[1];
+                    var genreState = useState('');
+                    var genre = genreState[0],
+                        setGenre = genreState[1];
+                    var durState = useState('100');
+                    var duration = durState[0],
+                        setDuration = durState[1];
+                    var ratingState = useState('PG');
+                    var rating = ratingState[0],
+                        setRating = ratingState[1];
+                    var posterState = useState('');
+                    var posterUrl = posterState[0],
+                        setPosterUrl = posterState[1];
+                    var startState = useState('');
+                    var startTime = startState[0],
+                        setStartTime = startState[1];
+                    var hallState = useState('Hall 1');
+                    var hall = hallState[0],
+                        setHall = hallState[1];
+                    var priceState = useState('180');
+                    var price = priceState[0],
+                        setPrice = priceState[1];
+
+                    var addShowMovieState = useState(null);
+                    var addShowMovieId = addShowMovieState[0],
+                        setAddShowMovieId = addShowMovieState[1];
+                    var miniStartState = useState('');
+                    var miniStart = miniStartState[0],
+                        setMiniStart = miniStartState[1];
+                    var miniHallState = useState('Hall 1');
+                    var miniHall = miniHallState[0],
+                        setMiniHall = miniHallState[1];
+                    var miniPriceState = useState('180');
+                    var miniPrice = miniPriceState[0],
+                        setMiniPrice = miniPriceState[1];
+
+                    var movies = service.getMovies();
+                    var bookings = service.getAllBookings();
+
+                    function force() {
+                        setTick(function(t) {
+                            return t + 1;
+                        });
+                    }
+
+                    function resetAddForm() {
+                        setTitle('');
+                        setGenre('');
+                        setDuration('100');
+                        setRating('PG');
+                        setPosterUrl('');
+                        setStartTime('');
+                        setHall('Hall 1');
+                        setPrice('180');
+                        setShowAddForm(false);
+                    }
+
+                    function submitAddMovie(e) {
+                        e.preventDefault();
+                        if (!startTime) return;
+                        var movie = new Movie('MOV-' + Date.now(), title, genre, Number(duration), rating, posterUrl);
+                        service.addMovie(movie);
+                        service.addShowtime(new Showtime('SHW-' + Date.now(), movie, startTime, hall, Number(price)));
+                        resetAddForm();
+                        force();
+                    }
+
+                    function submitMiniShowtime(e, movie) {
+                        e.preventDefault();
+                        if (!miniStart) return;
+                        service.addShowtime(new Showtime('SHW-' + Date.now(), movie, miniStart, miniHall, Number(miniPrice)));
+                        setAddShowMovieId(null);
+                        setMiniStart('');
+                        setMiniHall('Hall 1');
+                        setMiniPrice('180');
+                        force();
+                    }
+
+                    var headerEl = h('header', {
+                            className: 'view-header'
+                        },
+                        h('div', null, h('h2', null, 'แผงควบคุมผู้ดูแลระบบ'), h('p', {
+                            className: 'muted'
+                        }, admin.getDashboardInfo())),
+                        h('div', {
+                                className: 'header-actions'
+                            },
+                            h('button', {
+                                className: tab === 'movies' ? 'active' : '',
+                                onClick: function() {
+                                    setTab('movies');
+                                }
+                            }, 'หนัง'),
+                            h('button', {
+                                className: tab === 'bookings' ? 'active' : '',
+                                onClick: function() {
+                                    setTab('bookings');
+                                }
+                            }, 'การจองทั้งหมด'),
+                            h('button', {
+                                onClick: onLogout
+                            }, 'ออกจากระบบ')
+                        )
+                    );
+
+                    var bodyEl = null;
+
+                    if (tab === 'movies') {
+                        var addPanel = showAddForm ? h('div', {
+                                className: 'panel',
+                                style: {
+                                    marginBottom: '16px'
+                                }
+                            },
+                            h('div', {
+                                className: 'card-title-row'
+                            }, h('h3', null, 'เพิ่มหนัง + รอบฉายแรก'), h('button', {
+                                onClick: resetAddForm
+                            }, 'ยกเลิก')),
+                            h('form', {
+                                    onSubmit: submitAddMovie
+                                },
+                                h('div', {
+                                        className: 'form-grid'
+                                    },
+                                    h('label', null, 'ชื่อหนัง', h('input', {
+                                        value: title,
+                                        onChange: function(e) {
+                                            setTitle(e.target.value);
+                                        },
+                                        required: true
+                                    })),
+                                    h('label', null, 'แนวหนัง', h('input', {
+                                        value: genre,
+                                        onChange: function(e) {
+                                            setGenre(e.target.value);
+                                        },
+                                        required: true
+                                    })),
+                                    h('label', null, 'ความยาว (นาที)', h('input', {
+                                        type: 'number',
+                                        value: duration,
+                                        onChange: function(e) {
+                                            setDuration(e.target.value);
+                                        },
+                                        required: true
+                                    })),
+                                    h('label', null, 'เรทอายุผู้ชม',
+                                        h('select', {
+                                                value: rating,
+                                                onChange: function(e) {
+                                                    setRating(e.target.value);
+                                                }
+                                            },
+                                            h('option', {
+                                                value: 'G'
+                                            }, 'G'), h('option', {
+                                                value: 'PG'
+                                            }, 'PG'),
+                                            h('option', {
+                                                value: 'PG-13'
+                                            }, 'PG-13'), h('option', {
+                                                value: 'R'
+                                            }, 'R')
+                                        )
+                                    ),
+                                    h('p', {
+                                        className: 'muted form-grid-full',
+                                        style: {
+                                            marginTop: '-8px'
+                                        }
+                                    }, RATING_INFO[rating]),
+                                    h('label', {
+                                            className: 'form-grid-full'
+                                        }, 'รูปโปสเตอร์ (อัปโหลดจากเครื่อง)',
+                                        h('input', {
+                                            className: 'file-input',
+                                            type: 'file',
+                                            accept: 'image/*',
+                                            onChange: function(e) {
+                                                var f = e.target.files[0];
+                                                if (f) readFileAsDataUrl(f, setPosterUrl);
+                                            }
+                                        }),
+                                        posterUrl ? h('img', {
+                                            src: posterUrl,
+                                            style: {
+                                                marginTop: '8px',
+                                                width: '120px',
+                                                borderRadius: '6px'
+                                            }
+                                        }) : null
+                                    ),
+                                    h('label', null, 'วันเวลารอบฉาย', h('input', {
+                                        type: 'datetime-local',
+                                        value: startTime,
+                                        onChange: function(e) {
+                                            setStartTime(e.target.value);
+                                        },
+                                        required: true
+                                    })),
+                                    h('label', null, 'โรงฉาย', h('input', {
+                                        value: hall,
+                                        onChange: function(e) {
+                                            setHall(e.target.value);
+                                        },
+                                        required: true
+                                    })),
+                                    h('label', null, 'ราคาบัตร (บาท)', h('input', {
+                                        type: 'number',
+                                        value: price,
+                                        onChange: function(e) {
+                                            setPrice(e.target.value);
+                                        },
+                                        required: true
+                                    }))
+                                ),
+                                h('button', {
+                                    type: 'submit',
+                                    className: 'primary'
+                                }, 'บันทึกหนังและรอบฉาย')
+                            )
+                        ) : null;
+
+                        bodyEl = h('div', null,
+                            h('div', {
+                                    className: 'card-title-row',
+                                    style: {
+                                        marginBottom: '12px'
+                                    }
+                                },
+                                h('h3', null, 'รายการหนังทั้งหมด'),
+                                h('button', {
+                                    className: 'primary',
+                                    onClick: function() {
+                                        setShowAddForm(true);
+                                    }
+                                }, '+ เพิ่มหนัง')
+                            ),
+                            addPanel,
+                            h('div', {
+                                className: 'grid'
+                            }, movies.map(function(movie) {
+                                var shows = service.getShowtimesForMovie(movie.getId());
+                                var isAddingShow = addShowMovieId === movie.getId();
+                                return h('div', {
+                                        className: 'movie-card',
+                                        key: movie.getId(),
+                                        style: {
+                                            cursor: 'default'
+                                        }
+                                    },
+                                    h(MoviePoster, {
+                                        url: movie.getPosterUrl(),
+                                        genre: movie.getGenre()
+                                    }),
+                                    h('div', {
+                                            className: 'movie-card-body'
+                                        },
+                                        h('div', {
+                                                className: 'card-title-row'
+                                            },
+                                            h('h3', null, movie.getTitle()),
+                                            h('div', {
+                                                    className: 'btn-group'
+                                                },
+                                                h('button', {
+                                                    className: 'small-btn',
+                                                    onClick: function() {
+                                                        setEditing({
+                                                            type: 'movie',
+                                                            id: movie.getId()
+                                                        });
+                                                    }
+                                                }, 'แก้ไข'),
+                                                h('button', {
+                                                    className: 'small-btn',
+                                                    onClick: function() {
+                                                        service.removeMovie(movie.getId());
+                                                        force();
+                                                    }
+                                                }, 'ลบ')
+                                            )
+                                        ),
+                                        h('p', {
+                                            className: 'muted'
+                                        }, movie.getGenre() + ' · ' + movie.getDuration() + ' นาที · เรท ' + movie.getRating()),
+                                        h('div', {
+                                                className: 'card-row-gap'
+                                            },
+                                            shows.map(function(s) {
+                                                return h('div', {
+                                                        className: 'showtime-row',
+                                                        key: s.getId()
+                                                    },
+                                                    h('span', null, new Date(s.getStartTime()).toLocaleString('th-TH', {
+                                                        dateStyle: 'short',
+                                                        timeStyle: 'short'
+                                                    }) + ' · ' + s.getHall() + ' · ' + s.getPrice() + ' บาท'),
+                                                    h('div', {
+                                                            className: 'btn-group'
+                                                        },
+                                                        h('button', {
+                                                            className: 'small-btn',
+                                                            onClick: function() {
+                                                                setEditing({
+                                                                    type: 'showtime',
+                                                                    id: s.getId()
+                                                                });
+                                                            }
+                                                        }, 'แก้ไข'),
+                                                        h('button', {
+                                                            className: 'small-btn',
+                                                            onClick: function() {
+                                                                service.removeShowtime(s.getId());
+                                                                force();
+                                                            }
+                                                        }, 'ลบ')
+                                                    )
+                                                );
+                                            }),
+                                            isAddingShow ?
+                                            h('form', {
+                                                    onSubmit: function(e) {
+                                                        submitMiniShowtime(e, movie);
+                                                    },
+                                                    className: 'inline-form'
+                                                },
+                                                h('input', {
+                                                    type: 'datetime-local',
+                                                    value: miniStart,
+                                                    onChange: function(e) {
+                                                        setMiniStart(e.target.value);
+                                                    },
+                                                    required: true
+                                                }),
+                                                h('input', {
+                                                    placeholder: 'โรง',
+                                                    value: miniHall,
+                                                    onChange: function(e) {
+                                                        setMiniHall(e.target.value);
+                                                    },
+                                                    required: true
+                                                }),
+                                                h('input', {
+                                                    type: 'number',
+                                                    placeholder: 'ราคา',
+                                                    value: miniPrice,
+                                                    onChange: function(e) {
+                                                        setMiniPrice(e.target.value);
+                                                    },
+                                                    required: true
+                                                }),
+                                                h('button', {
+                                                    type: 'submit',
+                                                    className: 'primary small-btn'
+                                                }, 'บันทึก'),
+                                                h('button', {
+                                                    type: 'button',
+                                                    className: 'small-btn',
+                                                    onClick: function() {
+                                                        setAddShowMovieId(null);
+                                                    }
+                                                }, 'ยกเลิก')
+                                            ) :
+                                            h('button', {
+                                                className: 'small-btn',
+                                                onClick: function() {
+                                                    setAddShowMovieId(movie.getId());
+                                                }
+                                            }, '+ เพิ่มรอบฉาย')
+                                        )
+                                    )
+                                );
+                            }))
+                        );
+                    } else if (tab === 'bookings') {
+                        bodyEl = h('div', {
+                                className: 'panel'
+                            },
+                            bookings.length === 0 ? h('p', {
+                                className: 'muted'
+                            }, 'ยังไม่มีการจอง') : null,
+                            bookings.map(function(b) {
+                                return h('div', {
+                                        className: 'ticket-card',
+                                        key: b.getId()
+                                    },
+                                    h('p', {
+                                        className: 'muted'
+                                    }, b.getId() + ' · ลูกค้า ' + b.getCustomerId() + ' · ' + new Date(b.getBookingTime()).toLocaleString('th-TH')),
+                                    b.getTickets().map(function(t) {
+                                        return h('p', {
+                                            key: t.getId()
+                                        }, '🎟️ ' + t.printSummary());
+                                    }),
+                                    h('p', null, h('strong', null, 'รวม ' + b.getTotalPrice() + ' บาท'), ' · ' + b.getPaymentSummary())
+                                );
+                            })
+                        );
+                    }
+
+                    // ---- Modal แก้ไขหนัง / รอบฉาย ----
+                    var modalEl = null;
+                    if (editing && editing.type === 'movie') {
+                        var em = movies.filter(function(x) {
+                            return x.getId() === editing.id;
+                        })[0];
+                        if (em) modalEl = h(EditMovieModal, {
+                            key: em.getId(),
+                            service: service,
+                            movie: em,
+                            onClose: function() {
+                                setEditing(null);
+                            },
+                            onSaved: function() {
+                                setEditing(null);
+                                force();
+                            }
+                        });
+                    } else if (editing && editing.type === 'showtime') {
+                        var es = service.getShowtimes().filter(function(x) {
+                            return x.getId() === editing.id;
+                        })[0];
+                        if (es) modalEl = h(EditShowtimeModal, {
+                            key: es.getId(),
+                            service: service,
+                            showtime: es,
+                            onClose: function() {
+                                setEditing(null);
+                            },
+                            onSaved: function() {
+                                setEditing(null);
+                                force();
+                            }
+                        });
+                    }
+
+                    return h('div', {
+                        className: 'view'
+                    }, headerEl, bodyEl, modalEl);
+                }
+
+                function App() {
+                    var service = useMemo(function() {
+                        return new CinemaService();
+                    }, []);
+                    var userState = useState(null);
+                    var currentUser = userState[0],
+                        setCurrentUser = userState[1];
+
+                    function handleCustomerLogin(name, email) {
+                        setCurrentUser(service.getOrCreateCustomer(name, email));
+                    }
+
+                    function handleAdminLogin(name) {
+                        setCurrentUser(new Admin('ADM-' + Date.now(), name, name + '@cinema.local'));
+                    }
+
+                    if (!currentUser) {
+                        return h('div', {
+                            className: 'app-bg'
+                        }, h(Login, {
+                            onCustomerLogin: handleCustomerLogin,
+                            onAdminLogin: handleAdminLogin
+                        }));
+                    }
+
+                    var inner = currentUser.getRole() === 'Customer' ?
+                        h(CustomerView, {
+                            service: service,
+                            customer: currentUser,
+                            onLogout: function() {
+                                setCurrentUser(null);
+                            }
+                        }) :
+                        h(AdminView, {
+                            service: service,
+                            admin: currentUser,
+                            onLogout: function() {
+                                setCurrentUser(null);
+                            }
+                        });
+
+                    return h('div', {
+                        className: 'app-bg'
+                    }, inner);
+                }
+
+                var root = ReactDOM.createRoot(document.getElementById('root'));
+                root.render(h(App));
+            } catch (err) {
+                document.getElementById('root').innerHTML = '<div class="error-box">เกิดข้อผิดพลาด:\n' + (err && err.stack ? err.stack : err) + '</div>';
+                console.error(err);
+            }
+        })();
+    </script>
+</body>
+
+</html>
